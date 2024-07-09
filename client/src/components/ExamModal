@@ -1,0 +1,61 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+
+const ExamModal = ({ isOpen, closeModal, isNew, examToEdit }) => {
+  const [title, setTitle] = useState(isNew ? '' : examToEdit.title);
+  const [description, setDescription] = useState(isNew ? '' : examToEdit.description);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (isNew) {
+        await axios.post('http://localhost:7000/api/exams', { title, description }, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        toast.success('Exam added successfully');
+      } else {
+        await axios.put(`http://localhost:7000/api/exams/${examToEdit._id}`, { title, description }, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        toast.success('Exam updated successfully');
+      }
+      closeModal();
+    } catch (error) {
+      console.error('Failed to save exam', error);
+      toast.error('Failed to save exam');
+    }
+  };
+
+  return (
+    <div className={`modal ${isOpen ? 'block' : 'hidden'}`}>
+      <div className="modal-overlay"></div>
+      <div className="modal-container">
+        <form onSubmit={handleSubmit} className="modal-content">
+          <span className="modal-close" onClick={closeModal}>&times;</span>
+          <h2 className="text-xl font-bold mb-4">{isNew ? 'Add Exam' : 'Edit Exam'}</h2>
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="border p-2 mb-2 w-full"
+            required
+          />
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="border p-2 mb-2 w-full"
+            required
+          />
+          <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+            {isNew ? 'Add' : 'Update'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default ExamModal;
